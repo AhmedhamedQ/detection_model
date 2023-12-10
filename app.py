@@ -109,7 +109,7 @@ if uploaded_files is not None :
                             timestamps.append(timestamp)
                 
                             # Predict the class using your model
-                            prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
+                            prediction = round(model.predict(np.expand_dims(processed_frame, axis=0))[0][0])
                             frame_classes.append(prediction)
                             
                             # Read the next frame
