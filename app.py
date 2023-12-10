@@ -66,63 +66,63 @@ if uploaded_files is not None :
             model = load_model(uploaded_model_path)
             st.write("Model Loaded Successfully!")
 
-            for uploaded_file in uploaded_files:
-                if uploaded_file is not None:
-                    if uploaded_file.type.startswith('image/'):
-                        # Photo processing
-                        #st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+        for uploaded_file in uploaded_files:
+            if uploaded_file is not None:
+                if uploaded_file.type.startswith('image/'):
+                    # Photo processing
+                    #st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+            
+                    # Predict the class for the uploaded image
+                    with st.spinner('Please wait until ended classifying image...'):
+                        decoded_image = decode_image(uploaded_file)
+                        prediction = model.predict(decoded_image)[0][0]
+                        fig = px.imshow(np.squeeze(decoded_image))
+                        fig.update_layout(title=f'Prediction: {classes[round(prediction)]}')
+                        st.plotly_chart(fig)
+            
+                elif uploaded_file.type.startswith('video/'):
+                    with st.spinner('Please wait until ended classifying video...'):
+                        # Save the video locally
+                        video_path = "uploaded_video.mp4"
+                        with open(video_path, "wb") as video_file:
+                            video_file.write(uploaded_file.read())
                 
-                        # Predict the class for the uploaded image
-                        with st.spinner('Please wait until ended classifying image...'):
-                            decoded_image = decode_image(uploaded_file)
-                            prediction = model.predict(decoded_image)[0][0]
-                            fig = px.imshow(np.squeeze(decoded_image))
-                            fig.update_layout(title=f'Prediction: {classes[round(prediction)]}')
-                            st.plotly_chart(fig)
+                        # Video processing
+                        st.video(uploaded_file)
                 
-                    elif uploaded_file.type.startswith('video/'):
-                        with st.spinner('Please wait until ended classifying video...'):
-                            # Save the video locally
-                            video_path = "uploaded_video.mp4"
-                            with open(video_path, "wb") as video_file:
-                                video_file.write(uploaded_file.read())
-                    
-                            # Video processing
-                            st.video(uploaded_file)
-                    
-                            # Create a VideoCapture object
-                            vidcap = cv2.VideoCapture(video_path)
-                    
-                            timestamps = []
-                            frame_classes = []
-                    
-                            success, frame = vidcap.read()
-                            count = 0
+                        # Create a VideoCapture object
+                        vidcap = cv2.VideoCapture(video_path)
                 
-                        # Loop through video frames
-                        while success:
-                            # Preprocess the frame
-                            processed_frame = preprocess_frame(frame)
+                        timestamps = []
+                        frame_classes = []
                 
-                            # Get the timestamp of the frame
-                            timestamp = vidcap.get(cv2.CAP_PROP_POS_MSEC)
-                            timestamps.append(timestamp)
-                
-                            # Predict the class using your model
-                            prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
-                            frame_classes.append(prediction)
-                            frame_classes = pd.Series(frame_classes)
-                            
-                            # Read the next frame
-                            success, frame = vidcap.read()
-                            count += 1
-                        if frame_classes.value_counts()[0] > frame_classes.value_counts()[1]:
-                            st.write('There are animals for much of the video ')
-                        else :
-                            st.write('There are no animals for much of the video')
+                        success, frame = vidcap.read()
+                        count = 0
+            
+                    # Loop through video frames
+                    while success:
+                        # Preprocess the frame
+                        processed_frame = preprocess_frame(frame)
+            
+                        # Get the timestamp of the frame
+                        timestamp = vidcap.get(cv2.CAP_PROP_POS_MSEC)
+                        timestamps.append(timestamp)
+            
+                        # Predict the class using your model
+                        prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
+                        frame_classes.append(prediction)
                         
-                
-                else:
-                    st.warning("Please upload a valid image (jpg, jpeg, png) or video file (mp4, avi, mkv).")
+                        # Read the next frame
+                        frame_classes = pd.Series(frame_classes)
+                        success, frame = vidcap.read()
+                        count += 1
+                    if frame_classes.value_counts()[0] > frame_classes.value_counts()[1]:
+                        st.write('There are animals for much of the video ')
+                    else :
+                        st.write('There are no animals for much of the video')
+                    
+            
+            else:
+                st.warning("Please upload a valid image (jpg, jpeg, png) or video file (mp4, avi, mkv).")
 else :
     None
