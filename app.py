@@ -117,7 +117,7 @@ if uploaded_files is not None :
                             count += 1
                         if pd.Series(frame_classes).value_counts()[0] > pd.Series(frame_classes).value_counts()[1]:
                             st.write('There are animals for much of the video ')
-                        else :
+                        elif pd.Series(frame_classes).value_counts()[0] < pd.Series(frame_classes).value_counts()[1]:
                             st.write('There are no animals for much of the video')
             
             else:
