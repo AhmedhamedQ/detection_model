@@ -7,11 +7,14 @@ from PIL import Image
 from io import BytesIO
 import cv2
 from datetime import datetime
-
+import requests
+import plotly.express as px
+st.set_page_config(page_title='Animals classify' , page_icon='🐼')
+st.title("Image and Video Classification App")
 # Disable eager execution for compatibility with TensorFlow 1.x
 tf.disable_eager_execution()
 
-model = load_model('VGG16.keras')
+#model = load_model('VGG16.keras')
 
 classes = {0: 'there are animals', 1: 'no animals there are'}
 
@@ -41,43 +44,60 @@ def preprocess_frame(frame):
     return resized_frame
 
 # Streamlit app
-st.set_page_config(page_title='Animals classify' , page_icon='🐼')
-st.title("Image and Video Classification App")
+
 
 # File uploader for both photo and video
 uploaded_files = st.file_uploader("Choose a file", type=["jpg", "jpeg", "png", "mp4", "avi", "mkv"] , accept_multiple_files=True)
-if st.button('Pridect'):
-    for uploaded_file in uploaded_files:
-        if uploaded_file is not None:
-            if uploaded_file.type.startswith('image/'):
-                # Photo processing
-                st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-        
-                # Predict the class for the uploaded image
-                with st.spinner('Please wait until ended classifying image...'):
-                    decoded_image = decode_image(uploaded_file)
-                    prediction = np.argmax(model.predict(decoded_image), axis=1)[0]
-                    st.write(f'Prediction: {classes[prediction]}')
-        
-            elif uploaded_file.type.startswith('video/'):
-                with st.spinner('Please wait until ended classifying video...'):
-                    # Save the video locally
-                    video_path = "uploaded_video.mp4"
-                    with open(video_path, "wb") as video_file:
-                        video_file.write(uploaded_file.read())
+if uploaded_files is not None :
+    if st.button('Pridect'):
+        def download_file_from_google_drive(id, destination):
+            URL = "https://drive.google.com/uc?id=" + id
+            response = requests.get(URL)
+            with open(destination, 'wb') as f:
+                f.write(response.content)
+
+# Streamlit app
+        with st.spinner('Loading model'):
+        # File uploader for the Keras model
+            model_id = "1077QAiH23BhR6oE2eP5ZRLrj34mQ_OlN"
+            download_file_from_google_drive(model_id, "VGG16.keras")
+            uploaded_model_path = "VGG16.keras"
+            model = load_model(uploaded_model_path)
+            st.write("Model Loaded Successfully!")
+
+        for uploaded_file in uploaded_files:
+            if uploaded_file is not None:
+                if uploaded_file.type.startswith('image/'):
+                    # Photo processing
+                    #st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
             
-                    # Video processing
-                    st.video(uploaded_file)
+                    # Predict the class for the uploaded image
+                    with st.spinner('Please wait until ended classifying image...'):
+                        decoded_image = decode_image(uploaded_file)
+                        prediction = model.predict(decoded_image)[0][0]
+                        fig = px.imshow(np.squeeze(decoded_image))
+                        fig.update_layout(title=f'Prediction: {classes[round(prediction)]}')
+                        st.plotly_chart(fig)
             
-                    # Create a VideoCapture object
-                    vidcap = cv2.VideoCapture(video_path)
-            
-                    # Lists to store timestamps and classes
-                    timestamps = []
-                    frame_classes = []
-            
-                    success, frame = vidcap.read()
-                    count = 0
+                elif uploaded_file.type.startswith('video/'):
+                    with st.spinner('Please wait until ended classifying video...'):
+                        # Save the video locally
+                        video_path = "uploaded_video.mp4"
+                        with open(video_path, "wb") as video_file:
+                            video_file.write(uploaded_file.read())
+                
+                        # Video processing
+                        st.video(uploaded_file)
+                
+                        # Create a VideoCapture object
+                        vidcap = cv2.VideoCapture(video_path)
+                
+                        # Lists to store timestamps and classes
+                        timestamps = []
+                        frame_classes = []
+                
+                        success, frame = vidcap.read()
+                        count = 0
             
                     # Loop through video frames
                     while success:
@@ -89,17 +109,20 @@ if st.button('Pridect'):
                         timestamps.append(timestamp)
             
                         # Predict the class using your model
-                        prediction = np.argmax(model.predict(np.expand_dims(processed_frame, axis=0)), axis=1)[0]
+                        prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
                         frame_classes.append(prediction)
                         
                         # Read the next frame
                         success, frame = vidcap.read()
                         count += 1
-                    if 0 in frame_classes:
-                            st.write(f'Prediction for video: {classes[0]}')
-                    else :
-                        st.write(f"Prediction for video: {classes[1]}")
+                    for i in range(round(len(frame_classes)/3)):
+                        if frame_classes[i] == 0 :
+                                st.write(f'Prediction for video: {classes[0]}')
+                        else :
+                            st.write(f"Prediction for video: {classes[1]}")
                     
             
             else:
                 st.warning("Please upload a valid image (jpg, jpeg, png) or video file (mp4, avi, mkv).")
+else :
+    None
