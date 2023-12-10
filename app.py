@@ -100,27 +100,25 @@ if uploaded_files is not None :
                         count = 0
             
                     # Loop through video frames
-                    while success:
-                        # Preprocess the frame
-                        processed_frame = preprocess_frame(frame)
-            
-                        # Get the timestamp of the frame
-                        timestamp = vidcap.get(cv2.CAP_PROP_POS_MSEC)
-                        timestamps.append(timestamp)
-            
-                        # Predict the class using your model
-                        prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
-                        frame_classes.append(prediction)
-                        
-                        # Read the next frame
-                        frame_classes = pd.Series(frame_classes)
-                        success, frame = vidcap.read()
-                        count += 1
-                    if frame_classes.value_counts()[0] > frame_classes.value_counts()[1]:
-                        st.write('There are animals for much of the video ')
-                    else :
-                        st.write('There are no animals for much of the video')
-                    
+                        while success:
+                            # Preprocess the frame
+                            processed_frame = preprocess_frame(frame)
+                
+                            # Get the timestamp of the frame
+                            timestamp = vidcap.get(cv2.CAP_PROP_POS_MSEC)
+                            timestamps.append(timestamp)
+                
+                            # Predict the class using your model
+                            prediction = model.predict(np.expand_dims(processed_frame, axis=0))[0][0]
+                            frame_classes.append(prediction)
+                            
+                            # Read the next frame
+                            success, frame = vidcap.read()
+                            count += 1
+                        if pd.Series(frame_classes).value_counts()[0] > pd.Series(frame_classes).value_counts()[1]:
+                            st.write('There are animals for much of the video ')
+                        else :
+                            st.write('There are no animals for much of the video')
             
             else:
                 st.warning("Please upload a valid image (jpg, jpeg, png) or video file (mp4, avi, mkv).")
