@@ -6,3 +6,4 @@ plotly==5.18.0
 numpy==1.23.5
 opencv-python==4.8.1.78
 Pillow==10.1.0
+libGL.so.1
