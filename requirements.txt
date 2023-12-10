@@ -4,5 +4,5 @@ requests
 streamlit==1.29.0
 plotly==5.18.0
 numpy==1.23.5
-opencv-python==4.6.0
+opencv-python==4.8
 Pillow==10.1.0
