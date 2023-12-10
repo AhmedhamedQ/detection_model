@@ -115,12 +115,15 @@ if uploaded_files is not None :
                             # Read the next frame
                             success, frame = vidcap.read()
                             count += 1
-                    if pd.Series(frame_classes).value_counts()[0] < pd.Series(frame_classes).value_counts()[1]:
-                        st.write(f'There are animals in {pd.Series(frame_classes).value_counts()[0]} frames')
+
+                    animals = pd.Series(frame_classes).value_counts()[0]
+                    empty = pd.Series(frame_classes).value_counts()[1]
+                    if  animals >= round(len(frame_classes)/3):
+                        st.write(f'There are animals in {animals} frames')
                         st.write('So there are animals for much of the video')
                         st.write(f'Length of frames {len(frame_classes)}')
-                    elif pd.Series(frame_classes).value_counts()[0] > pd.Series(frame_classes).value_counts()[1]:
-                        st.write(f'There are no animals in {pd.Series(frame_classes).value_counts()[0]} frames')
+                    elif empty >= round(len(frame_classes)/3)*2:
+                        st.write(f'There are no animals in {empty} frames')
                         st.write('So there are no animals for much of the video')
                         st.write(f'Length of frames {len(frame_classes)}')            
             else:
