@@ -115,10 +115,10 @@ if uploaded_files is not None :
                             # Read the next frame
                             success, frame = vidcap.read()
                             count += 1
-                        if pd.Series(frame_classes).value_counts()[0] > pd.Series(frame_classes).value_counts()[1]:
-                            st.write('There are animals for much of the video ')
-                        elif pd.Series(frame_classes).value_counts()[0] < pd.Series(frame_classes).value_counts()[1]:
-                            st.write('There are no animals for much of the video')
+                    if pd.Series(frame_classes).value_counts()[0] > pd.Series(frame_classes).value_counts()[1]:
+                        st.write('There are animals for much of the video ')
+                    elif pd.Series(frame_classes).value_counts()[0] < pd.Series(frame_classes).value_counts()[1]:
+                        st.write('There are no animals for much of the video')
             
             else:
                 st.warning("Please upload a valid image (jpg, jpeg, png) or video file (mp4, avi, mkv).")
